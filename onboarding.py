@@ -9,7 +9,10 @@ MASTER_PROJECT_ID = os.getenv("MASTER_PROJECT_ID")
 
 def clone_master_project(new_school_name, gdoc_url):
     # 1. Create new project
-    new_project = client.create_project(name=f"{new_school_name} Chatbot")
+    new_project = client.create_project(
+        name=f"{new_school_name} Chatbot",
+        use_case="LLM_AGENT"
+    )
     new_project_id = new_project['projectId']
 
     # 2. Create dataset
