@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-client = abacusai.AbacusAI(api_key=os.getenv("ABACUS_API_KEY"))
+client = abacusai.Client(api_key=os.getenv("ABACUS_API_KEY"))
 MASTER_PROJECT_ID = os.getenv("MASTER_PROJECT_ID")
 
 
