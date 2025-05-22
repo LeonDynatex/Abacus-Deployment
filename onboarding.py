@@ -16,7 +16,7 @@ def clone_master_project(new_school_name, gdoc_url):
 
                                 # 2. Create dataset
                                 dataset = client.create_feature_group(
-                                    feature_group_name=f"{new_school_name} Knowledge Base",
+                                    feature_group=f"{new_school_name} Knowledge Base",
                                     project_id=new_project_id,
                                     source="GOOGLE_SHEETS",
                                     google_sheets_url=gdoc_url)
