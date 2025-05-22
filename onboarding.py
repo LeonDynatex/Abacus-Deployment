@@ -15,11 +15,11 @@ def clone_master_project(new_school_name, gdoc_url):
                                 new_project_id = new_project.project_id
 
                                 # 2. Create dataset
-                                dataset = client.create_connector_dataset(
+                                dataset = client.create_structured_dataset(
                                     name=f"{new_school_name} Knowledge Base",
                                     project_id=new_project_id,
-                                    connector_type="GOOGLE_SHEETS",
-                                    data_connection_config={"url": gdoc_url})
+                                    data_source="GOOGLE_SHEETS",
+                                    data_url=gdoc_url)
 
                                 # 3. Get master model parameters
                                 master_model = client.list_models(
