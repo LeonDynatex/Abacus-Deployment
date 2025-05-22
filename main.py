@@ -1,9 +1,15 @@
+
+import streamlit as st
 import abacusai
+from dotenv import load_dotenv
+import os
 
-API_KEY = "your_abacus_api_key_here"
-MASTER_PROJECT_ID = "your_master_project_id_here"
+load_dotenv()
 
-client = abacusai.AbacusAiClient(api_key=API_KEY)
+API_KEY = os.getenv('ABACUS_API_KEY')
+MASTER_PROJECT_ID = os.getenv('MASTER_PROJECT_ID')
+
+client = abacusai.Client(api_key=API_KEY)
 
 def clone_master_project(master_project_id, new_school_name, gdoc_url):
     new_project = client.create_project(name=f"{new_school_name} Chatbot")
@@ -36,12 +42,19 @@ def clone_master_project(master_project_id, new_school_name, gdoc_url):
         name=f"{new_school_name} Deployment"
     )
 
-    print(f"✅ {new_school_name} cloned. Deployment ID: {deployment['deploymentId']}")
+    return deployment['deploymentId']
 
-# Replace with real values
-if __name__ == "__main__":
-    clone_master_project(
-        master_project_id=MASTER_PROJECT_ID,
-        new_school_name="School ABC",
-        gdoc_url="https://docs.google.com/spreadsheets/d/your-sheet-id-here"
-    )
+st.title("School Chatbot Cloner")
+
+new_school_name = st.text_input("Enter School Name")
+gdoc_url = st.text_input("Enter Google Doc URL")
+
+if st.button("Clone Project"):
+    if new_school_name and gdoc_url:
+        try:
+            deployment_id = clone_master_project(MASTER_PROJECT_ID, new_school_name, gdoc_url)
+            st.success(f"✅ {new_school_name} cloned. Deployment ID: {deployment_id}")
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
+    else:
+        st.warning("Please fill in all fields")
