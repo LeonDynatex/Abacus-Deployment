@@ -18,27 +18,14 @@ def clone_master_project(new_school_name, gdoc_url):
         # 2. Create dataset - try different approaches
         dataset = None
         try:
-            # Approach 1: Basic feature group creation
+            # Create feature group with correct parameters
             dataset = client.create_feature_group(
-                project_id=new_project_id,
-                table_name=f"{new_school_name}_knowledge_base",
-                source_type="GOOGLE_SHEETS",
-                location=gdoc_url)
+                name=f"{new_school_name}_knowledge_base",
+                source="GOOGLE_SHEETS",
+                source_config={"url": gdoc_url})
         except Exception as e1:
-            print(f"Method 1 failed: {e1}")
-            try:
-                # Approach 2: Different parameter names
-                dataset = client.create_feature_group(
-                    project_id=new_project_id,
-                    feature_group_name=f"{new_school_name}_knowledge_base",
-                    source="GOOGLE_SHEETS",
-                    google_sheets_url=gdoc_url)
-            except Exception as e2:
-                print(f"Method 2 failed: {e2}")
-                try:
-                    # Approach 3: Minimal parameters
-                    dataset = client.create_feature_group(
-                        project_id=new_project_id, location=gdoc_url)
+            print(f"Feature group creation failed: {e1}")
+            raise Exception("Could not create feature group")
                 except Exception as e3:
                     print(f"Method 3 failed: {e3}")
                     raise Exception("Could not create dataset with any method")
