@@ -1,8 +1,8 @@
 [project]
-name = "python-template"
+name = "AbacusAI_Deployment"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Pakorngrid>"]
 requires-python = ">=3.11"
 dependencies = [
     "abacusai>=1.4.44",
