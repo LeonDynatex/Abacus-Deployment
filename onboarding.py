@@ -78,10 +78,9 @@ def create_document_retriever(project_id, school_name, feature_group_id):
 
 def create_chat_model(project_id, school_name, retriever_id):
     try:
-        model = client.create_model(
+        model = client.create_llm_model(
             name=f"{school_name}_Chatbot_Model",
             project_id=project_id,
-            model_type="CHAT",
             document_retriever_ids=[retriever_id]
         )
         print(f"✅ Created model: {model.model_id}")
