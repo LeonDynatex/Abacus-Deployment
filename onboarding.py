@@ -78,31 +78,22 @@ def continue_setup(feature_group_id):
             master_params = getattr(master_model, 'training_config', 
                                   getattr(master_model, 'task_parameters', {}))
 
-            # Try different model creation approaches
-            new_model = None
-            try:
-                new_model = client.create_model(
-                    project_id=new_project_id,
-                    name=f"{new_school_name} Chatbot Model",
-                    feature_group_ids=[feature_group_id],
-                    training_config=master_params
-                )
-            except Exception as e1:
-                print(f"Model creation attempt 1 failed: {e1}")
-                try:
-                    new_model = client.create_model(
-                        project_id=new_project_id,
-                        name=f"{new_school_name} Chatbot Model",
-                        feature_group_ids=[feature_group_id]
-                    )
-                except Exception as e2:
-                    print(f"Model creation attempt 2 failed: {e2}")
-                    # Create basic model
-                    new_model = client.create_model(
-                        project_id=new_project_id,
-                        name=f"{new_school_name} Chatbot Model"
-                    )
+            # Create document retriever
+            print("Creating document retriever...")
+            retriever = client.create_document_retriever(
+                name=f"{new_school_name} Document Retriever",
+                project_id=new_project_id,
+                feature_group_id=feature_group_id
+            )
+            print(f"✅ Created document retriever: {retriever.document_retriever_id}")
 
+            # Create chat model
+            print("Creating chat model...")
+            new_model = client.create_chat_model(
+                name=f"{new_school_name} Chatbot Model",
+                project_id=new_project_id,
+                document_retriever_ids=[retriever.document_retriever_id]
+            )
             print(f"✅ Created model: {new_model.model_id}")
 
         except Exception as e:
@@ -127,9 +118,10 @@ def continue_setup(feature_group_id):
         deployment_id = None
 
         try:
-            deployment = client.create_deployment(
+            deployment = client.create_chat_deployment(
                 model_id=new_model.model_id,
-                name=f"{new_school_name} Deployment"
+                name=f"{new_school_name} Deployment",
+                project_id=new_project_id
             )
             deployment_id = getattr(deployment, 'deployment_id', 
                                   getattr(deployment, 'id', None))
