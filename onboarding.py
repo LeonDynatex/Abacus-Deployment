@@ -6,7 +6,7 @@ load_dotenv()
 client = abacusai.ApiClient(api_key=os.getenv("ABACUS_API_KEY"))
 MASTER_PROJECT_ID = os.getenv("MASTER_PROJECT_ID")
 
-def clone_master_project(new_school_name, gdoc_url):
+def clone_master_project(new_school_name):
     try:
         # 1. Create new project
         print(f"Creating project for {new_school_name}...")
@@ -36,19 +36,16 @@ def clone_master_project(new_school_name, gdoc_url):
 
         # 3. Manual dataset setup instructions
         print(f"\n⚠️  MANUAL STEP REQUIRED:")
-        print(f"Since automatic dataset creation failed, please:")
         print(f"1. Go to https://console.abacus.ai/projects/{new_project_id}")
-        print(f"2. Add your Google Sheets data source: {gdoc_url}")
-        print(f"3. Create a feature group named '{new_school_name} Knowledge Base'")
-        print(f"4. Note down the feature group ID and run: set_feature_group_id('your_feature_group_id')")
+        print(f"2. Create a feature group named '{new_school_name} Knowledge Base'")
+        print(f"3. Note down the feature group ID to continue setup")
 
         # Store project info for later use
         global current_project_info
         current_project_info = {
             "project_id": new_project_id,
             "school_name": new_school_name,
-            "master_model": master_model,
-            "gdoc_url": gdoc_url
+            "master_model": master_model
         }
 
         return {
