@@ -8,7 +8,7 @@ MASTER_PROJECT_ID = os.getenv("MASTER_PROJECT_ID")
 
 def clone_master_project(new_school_name):
     try:
-        # 1. Create new project
+        # Create new project
         print(f"Creating project for {new_school_name}...")
         new_project = client.create_project(
             name=f"{new_school_name} Chatbot",
@@ -17,7 +17,7 @@ def clone_master_project(new_school_name):
         new_project_id = new_project.project_id
         print(f"✅ Created project: {new_project_id}")
 
-        # 2. Get master project configuration
+        # Get master project configuration
         print("Getting master project configuration...")
         master_models = client.list_models(project_id=MASTER_PROJECT_ID)
         if not master_models:
@@ -50,115 +50,75 @@ def clone_master_project(new_school_name):
 
         return {
             "project_id": new_project_id,
-            "status": "project_created_dataset_manual",
-            "next_steps": "Add dataset manually, then call continue_setup(feature_group_id)"
+            "school_name": new_school_name,
+            "status": "project_created",
+            "next_steps": "Add dataset manually, then call create_document_retriever(project_id, school_name, feature_group_id)"
         }
 
     except Exception as e:
         print(f"❌ Error in clone_master_project: {str(e)}")
         raise
 
-def continue_setup(feature_group_id):
-    """Continue setup after manual dataset creation"""
+def create_document_retriever(project_id, school_name, feature_group_id):
     try:
-        if 'current_project_info' not in globals():
-            raise ValueError("No project info found. Run clone_master_project first.")
-
-        info = current_project_info
-        new_project_id = info["project_id"]
-        new_school_name = info["school_name"]
-        master_model = info["master_model"]
-
-        print(f"Continuing setup for {new_school_name}...")
-
-        # 4. Create model using master configuration
-        print("Creating model...")
-        try:
-            # Get master model parameters
-            master_params = getattr(master_model, 'training_config', 
-                                  getattr(master_model, 'task_parameters', {}))
-
-            # Create document retriever
-            print("Creating document retriever...")
-            retriever = client.create_document_retriever(
-                name=f"{new_school_name} Document Retriever",
-                project_id=new_project_id,
-                feature_group_id=feature_group_id
-            )
-            print(f"✅ Created document retriever: {retriever.document_retriever_id}")
-
-            # Create chat model
-            print("Creating chat model...")
-            new_model = client.create_chat_model(
-                name=f"{new_school_name} Chatbot Model",
-                project_id=new_project_id,
-                document_retriever_ids=[retriever.document_retriever_id]
-            )
-            print(f"✅ Created model: {new_model.model_id}")
-
-        except Exception as e:
-            print(f"❌ Model creation failed: {e}")
-            return {"error": "Model creation failed", "details": str(e)}
-
-        # 5. Train model
-        print("Starting model training...")
-        try:
-            client.train_model(new_model.model_id)
-            print(f"✅ Training started for model: {new_model.model_id}")
-        except Exception as e:
-            print(f"⚠️  Training start failed: {e}")
-
-        # 6. Wait for training (optional)
-        print("You can monitor training progress in the web console...")
-        print(f"Model training URL: https://console.abacus.ai/models/{new_model.model_id}")
-
-        # 7. Deploy model
-        print("Attempting to deploy model...")
-        deployment = None
-        deployment_id = None
-
-        try:
-            deployment = client.create_chat_deployment(
-                model_id=new_model.model_id,
-                name=f"{new_school_name} Deployment",
-                project_id=new_project_id
-            )
-            deployment_id = getattr(deployment, 'deployment_id', 
-                                  getattr(deployment, 'id', None))
-            print(f"✅ Created deployment: {deployment_id}")
-        except Exception as e1:
-            print(f"create_deployment failed: {e1}")
-            try:
-                deployment = client.deploy_model(
-                    model_id=new_model.model_id,
-                    name=f"{new_school_name} Deployment"
-                )
-                deployment_id = getattr(deployment, 'deployment_id', 
-                                      getattr(deployment, 'id', None))
-                print(f"✅ Created deployment: {deployment_id}")
-            except Exception as e2:
-                print(f"❌ All deployment methods failed: {e2}")
-                print(f"Manual deployment: https://console.abacus.ai/models/{new_model.model_id}")
-
+        retriever = client.create_document_retriever(
+            name=f"{school_name}_Document_Retriever",
+            project_id=project_id,
+            feature_group_id=feature_group_id
+        )
+        print(f"✅ Created document retriever: {retriever.document_retriever_id}")
         return {
-            "project_id": new_project_id,
-            "model_id": new_model.model_id,
-            "deployment_id": deployment_id,
-            "feature_group_id": feature_group_id,
-            "status": "complete" if deployment_id else "model_created_deployment_manual"
+            "retriever_id": retriever.document_retriever_id,
+            "status": "retriever_created",
+            "next_steps": "Call create_chat_model(project_id, school_name, retriever_id)"
         }
-
     except Exception as e:
-        print(f"❌ Error in continue_setup: {str(e)}")
+        print(f"❌ Error creating document retriever: {str(e)}")
+        raise
+
+def create_chat_model(project_id, school_name, retriever_id):
+    try:
+        model = client.create_chat_model(
+            name=f"{school_name}_Chatbot_Model",
+            project_id=project_id,
+            document_retriever_ids=[retriever_id]
+        )
+        print(f"✅ Created model: {model.model_id}")
+        client.train_model(model.model_id)
+        print(f"✅ Training started for model: {model.model_id}")
+        return {
+            "model_id": model.model_id,
+            "status": "model_created_and_training",
+            "next_steps": "Call create_deployment(project_id, school_name, model_id)"
+        }
+    except Exception as e:
+        print(f"❌ Error creating/training model: {str(e)}")
+        raise
+
+def create_deployment(project_id, school_name, model_id):
+    try:
+        deployment = client.create_chat_deployment(
+            model_id=model_id,
+            name=f"{school_name}_Deployment",
+            project_id=project_id
+        )
+        deployment_id = getattr(deployment, 'deployment_id', 
+                                  getattr(deployment, 'id', None))
+        print(f"✅ Created deployment: {deployment_id}")
+        return {
+            "deployment_id": deployment_id,
+            "status": "deployment_created"
+        }
+    except Exception as e:
+        print(f"❌ Error creating deployment: {str(e)}")
         raise
 
 def quick_clone_with_manual_steps(new_school_name, gdoc_url):
     """One-step function that provides manual instructions"""
     try:
         # Create project
-        result = clone_master_project(new_school_name, gdoc_url)
+        result = clone_master_project(new_school_name)
         project_id = result["project_id"]
-
         print(f"\n" + "="*60)
         print(f"🎯 SETUP INSTRUCTIONS FOR {new_school_name.upper()}")
         print(f"="*60)
@@ -167,7 +127,7 @@ def quick_clone_with_manual_steps(new_school_name, gdoc_url):
         print(f"3. Choose 'Google Sheets' and enter: {gdoc_url}")
         print(f"4. Name it: '{new_school_name} Knowledge Base'")
         print(f"5. After creation, copy the Feature Group ID")
-        print(f"6. Run: continue_setup('your_feature_group_id')")
+        print(f"6. Run: create_document_retriever(project_id, school_name, 'your_feature_group_id')")
         print(f"="*60)
 
         return result
@@ -179,4 +139,4 @@ def quick_clone_with_manual_steps(new_school_name, gdoc_url):
 # Example usage:
 # result = quick_clone_with_manual_steps("Example School", "https://docs.google.com/spreadsheets/d/your-sheet-id")
 # Then after manual dataset creation:
-# final_result = continue_setup("your_feature_group_id_here")
+# final_result = create_document_retriever(project_id, school_name, "your_feature_group_id_here")
