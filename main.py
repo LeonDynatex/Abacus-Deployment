@@ -4,6 +4,12 @@ from onboarding import clone_master_project, continue_setup
 
 st.set_page_config(page_title="School Chatbot Onboarding", layout="centered")
 
+# Initialize session state
+if 'project_created' not in st.session_state:
+    st.session_state.project_created = False
+if 'project_info' not in st.session_state:
+    st.session_state.project_info = None
+
 st.title("🎓 School Chatbot Onboarding")
 
 tab1, tab2 = st.tabs(["Initial Setup", "Continue Setup"])
@@ -16,6 +22,8 @@ with tab1:
             with st.spinner("Setting up your project..."):
                 try:
                     result = clone_master_project(school_name)
+                    st.session_state.project_created = True
+                    st.session_state.project_info = result
                     st.success(f"✅ Project created for {school_name}!")
                     st.info("Now follow these steps:")
                     st.markdown(f"""
@@ -23,7 +31,7 @@ with tab1:
                     2. Add your data source
                     3. Create a feature group named '{school_name} Knowledge Base'
                     4. Copy the Feature Group ID
-                    5. Return here and use the 'Continue Setup' tab to complete the setup
+                    5. Switch to the 'Continue Setup' tab to complete the setup
                     """)
                     st.code(result)
                 except Exception as e:
@@ -31,17 +39,26 @@ with tab1:
         else:
             st.warning("Please enter the school name.")
 
+    if st.session_state.project_created:
+        st.success("✅ Project is ready! Please switch to 'Continue Setup' tab to proceed.")
+
 with tab2:
-    feature_group_id = st.text_input("Enter Feature Group ID")
-    
-    if st.button("▶️ Continue Setup"):
-        if feature_group_id:
-            with st.spinner("Continuing setup..."):
-                try:
-                    result = continue_setup(feature_group_id)
-                    st.success("✅ Setup completed successfully!")
-                    st.code(result)
-                except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
-        else:
-            st.warning("Please enter the Feature Group ID.")
+    if not st.session_state.project_created:
+        st.warning("⚠️ Please create a project first in the 'Initial Setup' tab")
+    else:
+        feature_group_id = st.text_input("Enter Feature Group ID")
+        
+        if st.button("▶️ Continue Setup"):
+            if feature_group_id:
+                with st.spinner("Continuing setup..."):
+                    try:
+                        result = continue_setup(feature_group_id)
+                        st.success("✅ Setup completed successfully!")
+                        st.code(result)
+                        # Reset state for new setup
+                        st.session_state.project_created = False
+                        st.session_state.project_info = None
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
+            else:
+                st.warning("Please enter the Feature Group ID.")
