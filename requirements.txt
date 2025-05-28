@@ -1,3 +1,3 @@
 streamlit==1.29.0
-abacusai>=3.0.0
+abacusai>=1.4.46
 python-dotenv==1.0.0
