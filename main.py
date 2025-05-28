@@ -1,6 +1,6 @@
 import streamlit as st
 from onboarding import setup_new_school_project, create_document_retriever, quick_setup_with_checklist
-
+ 
 st.set_page_config(page_title="School Chatbot Onboarding", layout="centered")
 
 # Initialize session state
