@@ -6,7 +6,7 @@ load_dotenv()
 client = abacusai.ApiClient(api_key=os.getenv("ABACUS_API_KEY"))
 MASTER_PROJECT_ID = os.getenv("MASTER_PROJECT_ID")
 
-def setup_new_school_project(new_school_name, gdoc_url):
+def setup_new_school_project(new_school_name):
     """
     Step 1: Create project and provide manual setup instructions
     """
@@ -30,7 +30,7 @@ def setup_new_school_project(new_school_name, gdoc_url):
         print(f"✅ Found master model reference: {master_model.model_id}")
 
         # Print complete setup instructions
-        print_setup_instructions(new_school_name, new_project_id, gdoc_url)
+        print_setup_instructions(new_school_name, new_project_id)
 
         return {
             "project_id": new_project_id,
@@ -69,7 +69,7 @@ def create_document_retriever(project_id, school_name, feature_group_id):
         print(f"❌ Error creating document retriever: {str(e)}")
         raise
 
-def print_setup_instructions(school_name, project_id, gdoc_url):
+def print_setup_instructions(school_name, project_id):
     """Print formatted setup instructions"""
     print(f"\n" + "="*70)
     print(f"🎯 SETUP INSTRUCTIONS FOR {school_name.upper()}")
@@ -78,13 +78,12 @@ def print_setup_instructions(school_name, project_id, gdoc_url):
     print(f"   1. Go to: https://console.abacus.ai/projects/{project_id}")
     print(f"   2. Click 'Add Data Source'")
     print(f"   3. Choose 'Google Sheets'")
-    print(f"   4. Enter URL: {gdoc_url}")
-    print(f"   5. Name it: '{school_name} Knowledge Base'")
-    print(f"   6. Click 'Create Feature Group'")
-    print(f"   7. ✅ Check here when completed: [ ]")
+    print(f"   4. Name it: '{school_name} Knowledge Base'")
+    print(f"   5. Click 'Create Feature Group'")
+    print(f"   6. ✅ Check here when completed: [ ]")
     print(f"\n📋 AFTER STEP 1 IS COMPLETE:")
-    print(f"   8. Copy the Feature Group ID from the created feature group")
-    print(f"   9. Run: create_document_retriever('{project_id}', '{school_name}', 'YOUR_FEATURE_GROUP_ID')")
+    print(f"   7. Copy the Feature Group ID from the created feature group")
+    print(f"   8. Run: create_document_retriever('{project_id}', '{school_name}', 'YOUR_FEATURE_GROUP_ID')")
     print(f"="*70)
 
 def print_training_instructions(school_name, project_id, retriever_id):
@@ -112,13 +111,13 @@ def print_training_instructions(school_name, project_id, retriever_id):
     print(f"   Your {school_name} chatbot should now be ready to use!")
     print(f"="*70)
 
-def quick_setup_with_checklist(new_school_name, gdoc_url):
+def quick_setup_with_checklist(new_school_name):
     """
     Complete setup function with manual checklist approach
     """
     try:
         print(f"🚀 Starting setup for {new_school_name}...")
-        result = setup_new_school_project(new_school_name, gdoc_url)
+        result = setup_new_school_project(new_school_name)
         
         print(f"\n📝 SETUP SUMMARY:")
         print(f"   • Project ID: {result['project_id']}")
